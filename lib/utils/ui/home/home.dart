@@ -27,32 +27,22 @@ class _HomeState extends State<Home> {
   late int a;
   bool showSpinner = false;
   var deleteID;
+  int apiCategory = 1;
+
   //Api calling method
   Future progressShowData() async {
     try {
-      idD = await NotesDatabase.instance.readAllNotes();
-      deleteID = idD[0].id;
-      print('This is try catch id: $deleteID');
-      await NotesDatabase.instance.delete(deleteID);
-    } catch (e) {
-      print("This is error in id gate");
-    }
-
-    // setState(() {
-    //   deleteID = idD[1].id;
-    // });
-    try {
-      final response = await http.get(Uri.parse(Config.PRODUCT_URL));
-      // SharedPreferences sharedPreferences =
-      //     await SharedPreferences.getInstance();
-      // a = sharedPreferences.getInt('a') ?? 0;
-      // print("This is $a");
-      // if (deleteID != null) {
-      //await NotesDatabase.instance.delete(a);
-      // }
-
-      //a++;
-      //sharedPreferences.setInt('a', a);
+      final response =
+          await http.get(Uri.parse('${Config.PRODUCT_URL}$apiCategory'));
+      apiCategory++;
+      try {
+        idD = await NotesDatabase.instance.readAllNotes();
+        deleteID = idD[0].id;
+        print('This is try catch id: $deleteID');
+        await NotesDatabase.instance.delete(deleteID);
+      } catch (e) {
+        print("This is error in id gate");
+      }
       Map<String, dynamic> map = jsonDecode(response.body);
       setState(() {
         title = map['title'];
@@ -110,8 +100,11 @@ class _HomeState extends State<Home> {
 
 //get data from sqflite database
   Future refreshNotes() async {
-    notes = await NotesDatabase.instance.readAllNotes();
-    // print("This is notes: ${notes[0].id}");
+    setState(() => isLoading = true);
+
+    this.notes = await NotesDatabase.instance.readAllNotes();
+
+    setState(() => isLoading = false);
     return notes;
   }
 
@@ -220,7 +213,6 @@ class _HomeState extends State<Home> {
                         shrinkWrap: true,
                         itemCount: notes.length,
                         itemBuilder: (BuildContext context, int index) {
-                          print("This is index: $index");
                           final st = notes[index];
                           id = st.id;
                           return Stack(
